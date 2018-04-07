@@ -9,7 +9,11 @@ demonstrated in class.
 In main.py a pre-trained VGG16 architecture is imported (the encoding part of the convnet). In the decoding part 1x1 convolutions and upsampking are used
 to reconstruct the image with predicted classes. Additionally, skip-layers are used to integrate information from several pooling layers of the encoder.
 
-The model was trained on AWS and the result transferred to this repository. 
+The model was trained on AWS and the result transferred to this repository using a batch size of 8 (interestingly, on my local GTX 970 even a batch of 1 
+was not enough tun train the model) and 40 epochs. Training loss decreased from 0.5 to about 0.1.
+
+Sample pictures have been uploaded to the runs folder and mostly classify the road correctly. In some cases the road is not identified correctly and rarely non-road is
+classified as road. Image augmentation would probably help with that.
 
 
 ### Setup

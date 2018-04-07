@@ -189,9 +189,6 @@ def run():
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
 
         # OPTIONAL: Apply the trained model to a video
-        
-        # data_sub_dir = 'project_video'
-        # helper.save_to_clip(data_sub_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
         print('all done')
 
 
