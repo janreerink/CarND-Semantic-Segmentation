@@ -2,6 +2,16 @@
 ### Introduction
 In this project, you'll label the pixels of a road in images using a Fully Convolutional Network (FCN).
 
+### Writeup
+In this project the goal is to predict one of two classes (road / not-road) for each pixel of a picture using the fully convolutional network architecture
+demonstrated in class.
+
+In main.py a pre-trained VGG16 architecture is imported (the encoding part of the convnet). In the decoding part 1x1 convolutions and upsampking are used
+to reconstruct the image with predicted classes. Additionally, skip-layers are used to integrate information from several pooling layers of the encoder.
+
+The model was trained on AWS and the result transferred to this repository. 
+
+
 ### Setup
 ##### Frameworks and Packages
 Make sure you have the following is installed:
