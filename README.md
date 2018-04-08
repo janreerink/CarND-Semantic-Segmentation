@@ -13,7 +13,12 @@ The model was trained on AWS and the result transferred to this repository using
 was not enough tun train the model) and 40 epochs. Training loss decreased from 0.5 to about 0.1.
 
 Sample pictures have been uploaded to the runs folder and mostly classify the road correctly. In some cases the road is not identified correctly and rarely non-road is
-classified as road. Image augmentation would probably help with that.
+classified as road. After the initial submit the initialization of weights for the conv-layers was changed from default to truncated normal. The cost function, which did not
+take into account the regularization terms, was fixed and learning rate reduced and batch size slightly increased (1e-4 and 12 respectively).
+As a result the model converged to a training loss of about 0.18 but sample pictures showed better results, indicating that the previous model was over-fitting.
+
+
+ 
 
 
 ### Setup

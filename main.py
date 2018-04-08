@@ -61,30 +61,30 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
     c1x1_7 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, strides=(1,1), padding = 'same',
-                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3))
+                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
 
     out_7 = tf.layers.conv2d_transpose(c1x1_7, num_classes, 4, 2, padding = 'same',
-                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3))
+                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
     
     #1x1 conv for layer 4
     c1x1_4 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, strides=(1,1), padding = 'same',
-                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3))
+                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
     
     #add skip layer for upsampled layer 7 and 1x1 convolved layer 4
     skip_7_4 = tf.add(out_7, c1x1_4)
     #upsample the skip connection
     out_4 = tf.layers.conv2d_transpose(skip_7_4, num_classes, 4, strides=(2, 2), padding = 'same',
-                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3))
+                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
 
     #1x1 conv for layer 4
     c1x1_3 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, strides=(1,1), padding = 'same',
-                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3))
+                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
     #skip connection
     skip_4_3 = tf.add(out_4, c1x1_3)
 
     #upsample
     out = tf.layers.conv2d_transpose(skip_4_3, num_classes, 32, (8, 8), padding = 'same',
-                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3))
+                            kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
     return out
 #tests.test_layers(layers)
 
@@ -101,13 +101,19 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     #flatten 4d input
     logits = tf.reshape(nn_last_layer, (-1, num_classes))
     correct_label = tf.reshape(correct_label, (-1,num_classes))
+    
+    #collect reg losses 
+    regularization_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
     #loss function for softmax
     cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=correct_label))
+    
+    #add reg losses to loss function
+    cross_entry_loss_l2 = cross_entropy_loss + tf.reduce_sum(regularization_losses)
     #use Adam optimizer
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-    train_op = optimizer.minimize(cross_entropy_loss)
+    train_op = optimizer.minimize(cross_entry_loss_l2)
 
-    return logits, train_op, cross_entropy_loss
+    return logits, train_op, cross_entry_loss_l2
 
 #tests.test_optimize(optimize)
 
@@ -130,11 +136,10 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     # TODO: Implement function
     print('start training')
     for epoch in range(epochs):
-        print('start epoch' + epoch)
         for image, targets in get_batches_fn(batch_size):
             _, loss = sess.run([train_op, cross_entropy_loss], 
                 feed_dict = {input_image: image, correct_label: targets, keep_prob: 0.5,
-                             learning_rate: 1e-3})
+                             learning_rate: 1e-4})
         # Print data on the learning process
         print("Epoch: {}".format(epoch), " Loss: {:.3f}".format(loss) )
         #if (epoch + 1) % 30 == 0: # Save every 20 epochs
@@ -161,7 +166,7 @@ def run():
 
         #parameters and placeholders        
         epochs = 40
-        batch_size = 8
+        batch_size = 12
         correct_label = tf.placeholder(tf.int32, [None, None, None, num_classes], name='correct_label')
         learning_rate = tf.placeholder(tf.float32, name='learning_rate')
         
